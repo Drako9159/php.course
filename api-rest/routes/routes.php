@@ -36,8 +36,10 @@ if (count(array_filter($arrayRoutes)) == 2) {
                 $courses->show(array_filter($arrayRoutes)[4]);
             }
             if (isset($_SERVER["REQUEST_METHOD"]) && $_SERVER["REQUEST_METHOD"] == "PUT") {
+                $data = array();
+                parse_str(file_get_contents('php://input'), $data);
                 $courses = new ControllerCourses();
-                $courses->update(array_filter($arrayRoutes)[4]);
+                $courses->update(array_filter($arrayRoutes)[4], $data);
             }
             if (isset($_SERVER["REQUEST_METHOD"]) && $_SERVER["REQUEST_METHOD"] == "DELETE") {
                 $courses = new ControllerCourses();

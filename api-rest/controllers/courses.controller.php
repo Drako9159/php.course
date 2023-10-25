@@ -79,21 +79,111 @@ class ControllerCourses
 
     public function show($id)
     {
-        $json = array("detail" => "list course show " . $id);
+
+        $clients = ModelClients::index("clients");
+
+        if (isset($_SERVER["PHP_AUTH_USER"]) && isset($_SERVER["PHP_AUTH_PW"])) {
+            foreach ($clients as $key => $valueClient) {
+                if (base64_encode($_SERVER["PHP_AUTH_USER"] . ":" . $_SERVER["PHP_AUTH_PW"]) == base64_encode($valueClient["id_client_secret"] . ":" . $valueClient["secret_key"])) {
+                    $course = ModelCourses::show("courses", $id);
+                    if (!empty($course)) {
+                        $json = array("status" => 200, "detail" => $course);
+                        echo json_encode($json, true);
+                        return;
+                    } else {
+                        $json = array("status" => 404, "detail" => "course not found");
+                        echo json_encode($json, true);
+                        return;
+                    }
+                }
+            }
+        }
+
+
+        $json = array("detail" => "please auth");
         echo json_encode($json, true);
         return;
     }
 
-    public function update($id)
+    public function update($id, $data)
     {
-        $json = array("detail" => "list course updated " . $id);
+        $clients = ModelClients::index("clients");
+
+        if (isset($_SERVER["PHP_AUTH_USER"]) && isset($_SERVER["PHP_AUTH_PW"])) {
+            foreach ($clients as $key => $valueClient) {
+                if (base64_encode($_SERVER["PHP_AUTH_USER"] . ":" . $_SERVER["PHP_AUTH_PW"]) == base64_encode($valueClient["id_client_secret"] . ":" . $valueClient["secret_key"])) {
+                    foreach ($data as $key => $valueData) {
+                        if (isset($valueData) && !preg_match('/^[(\\)\\=\\&\\$\\;\\-\\_\\*\\"\\<\\>\\?\\¿\\!\\¡\\:\\,\\.\\0-9a-zA-ZñÑáéíóúÁÉÍÓÚ ]+$/', $valueData)) {
+                            $json = array("status" => 404, "detail" => "Error in: " . $key);
+                            echo json_encode($json, true);
+                            return;
+                        }
+                    }
+
+                    $course = ModelCourses::show("courses", $id);
+                    if (!$course) {
+                        $json = array("status" => 404, "detail" => "course not found");
+                        echo json_encode($json, true);
+                        return;
+                    }
+                    foreach ($course as $key => $valueCourse) {
+                        if ($valueCourse->id_creator == $valueClient["id_client"]) {
+                            $data = array(
+                                "id" => $id,
+                                "title" => $data["title"],
+                                "description" => $data["description"],
+                                "instructor" => $data["instructor"],
+                                "image" => $data["image"],
+                                "price" => $data["price"],
+                                "updated_at" => date("Y-m-d h:i:s")
+                            );
+                            $update = ModelCourses::update("courses", $data);
+                            if ($update == "ok") {
+                                $json = array("detail" => "course updated");
+                                echo json_encode($json, true);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        $json = array("detail" => "please auth");
         echo json_encode($json, true);
         return;
     }
 
     public function delete($id)
     {
-        $json = array("detail" => "list course deleted " . $id);
+        $clients = ModelClients::index("clients");
+
+        if (isset($_SERVER["PHP_AUTH_USER"]) && isset($_SERVER["PHP_AUTH_PW"])) {
+            foreach ($clients as $key => $valueClient) {
+                if (base64_encode($_SERVER["PHP_AUTH_USER"] . ":" . $_SERVER["PHP_AUTH_PW"]) == base64_encode($valueClient["id_client_secret"] . ":" . $valueClient["secret_key"])) {
+                    $course = ModelCourses::show("courses", $id);
+                    if (!$course) {
+                        $json = array("status" => 404, "detail" => "course not found");
+                        echo json_encode($json, true);
+                        return;
+                    }
+                    foreach ($course as $key => $valueCourse) {
+                        if ($valueCourse->id_creator == $valueClient["id_client"]) {
+                            $delete = ModelCourses::delete("courses", $id);
+                            if ($delete == "ok") {
+                                $json = array("detail" => "course deleted");
+                                echo json_encode($json, true);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        $json = array("detail" => "please auth");
         echo json_encode($json, true);
         return;
     }
