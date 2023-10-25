@@ -4,9 +4,13 @@ require_once "connection.php";
 
 class ModelCourses
 {
-    static public function index($table)
+    static public function index($table1, $table2, $amount, $from)
     {
-        $st = Connection::connect()->prepare("SELECT * FROM $table");
+        if ($amount != null) {
+            $st = Connection::connect()->prepare("SELECT $table1.id_course, $table1.title, $table1.description, $table1.instructor, $table1.image, $table1.price, $table1.id_creator, $table2.name, $table2.last_name FROM $table1 INNER JOIN $table2 ON $table1.id_creator = $table2.id_client LIMIT $from, $amount");
+        } else {
+            $st = Connection::connect()->prepare("SELECT $table1.id_course, $table1.title, $table1.description, $table1.instructor, $table1.image, $table1.price, $table1.id_creator, $table2.name, $table2.last_name FROM $table1 INNER JOIN $table2 ON $table1.id_creator = $table2.id_client");
+        }
         $st->execute();
         return $st->fetchAll(PDO::FETCH_CLASS);
         $st->close();
@@ -37,9 +41,11 @@ class ModelCourses
         $st = null;
     }
 
-    static public function show($table, $id)
+    static public function show($table1, $table2, $id)
     {
-        $st = Connection::connect()->prepare("SELECT * FROM $table WHERE id_course = :id");
+        $st = Connection::connect()->prepare("SELECT $table1.id_course, $table1.title, $table1.description, $table1.instructor, $table1.image, $table1.price, $table1.id_creator, $table2.name, $table2.last_name FROM $table1 INNER JOIN $table2 ON $table1.id_creator = $table2.id_client WHERE $table1.id_course = :id");
+
+
         $st->bindParam(":id", $id, PDO::PARAM_INT);
         $st->execute();
         return $st->fetchAll(PDO::FETCH_CLASS);
